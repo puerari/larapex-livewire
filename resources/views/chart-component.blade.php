@@ -11,12 +11,26 @@
     isReset: false,
     isDestroy: false,
     initChart() {
-        console.log('init chart');
+        let foptions = {!! $foptions !!};
+        this.deepMergeObjects(this.options, foptions);
         this.chart = new ApexCharts($refs.chartElem, this.options);
         this.chart.render();
     },
+    deepMergeObjects(options, mergeObject) {
+        let setCallback = function(path, callback) {
+            let schema = options; // a moving reference to internal objects within obj
+            let pList = path.split('.'); // seperate do natation
+            let len = pList.length;
+            for (let i = 0; i < len - 1; i++) {
+                let elem = pList[i];
+                if (!schema[elem]) schema[elem] = {} // key not exists => assign new obj
+                schema = schema[elem];
+            }
+            schema[pList[len - 1]] = callback;
+        }
+        for (let key in mergeObject) setCallback(key, mergeObject[key]);
+    },
     updateOptions() {
-        console.log('update chart options');
         if (this.chart !== null && Object.keys(this.options).length > 0) {
             this.chart.updateOptions(
                 this.options,
@@ -27,7 +41,6 @@
         }
     },
     updateSeries() {
-        console.log('update chart series');
         if (this.chart !== null && Object.keys(this.options).length > 0) {
             this.chart.updateSeries(
                 this.options.series,
@@ -36,7 +49,6 @@
         }
     },
     resetChart() {
-        console.log('reset chart');
         if (this.chart !== null) {
             this.chart.resetSeries(
                 this.update,
@@ -46,17 +58,16 @@
         this.isReset = true;
     },
     destroyChart() {
-        console.log('destroy chart');
         if (this.chart !== null) this.chart.destroy();
         this.isDestroy = true;
     }
-}" x-id="['apex_chart']" x-init="initChart();
-$watch('options', (newOptions) => {
+}" x-id="['apex_chart']" x-init="$watch('options', (newOptions) => {
     if (chart && (isReset !== true) && (isDestroy !== true) && JSON.stringify(chart.opts) !== JSON.stringify(newOptions)) {
         updateSeries();
     }
     isReset = false;
-});"
+});
+initChart();"
     x-on:update:chart:options="updateOptions" x-on:reset:chart="resetChart" x-on:delete:chart="destroyChart" wire:ignore>
     <div :id="$id('apex_chart')" x-ref="chartElem" class="m-0"></div>
 </div>
