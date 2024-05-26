@@ -10,11 +10,11 @@ class LarapexBladeDirectives
 
         $jsPluginScript = $service->getPluginScript($service->resolveWithCDN($withCDN));
 
-        $jsScripts = $service->getScripts();
+        // Removed : use alpinejs instead
+        // $jsScripts = $service->getScripts();
 
         return <<<HTML
                 {$jsPluginScript}
-                {$jsScripts}
             HTML;
     }
 
@@ -41,50 +41,50 @@ class LarapexBladeDirectives
                     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
                 HTML;
     }
-    protected function getScripts()
-    {
-        return $this->isLocalScriptExists() ? $this->getLocalScriptTags() : $this->getScriptsContent();
-    }
-    protected function getLocalScriptTags()
-    {
-        if (config('larapex-livewire.useBrowserEventListeners', false))
-            $tags = <<<HTML
-                    <script src="{{ asset('vendor/larapex-livewire/larapexScripts.js') }}"></script>
-                    <script src="{{ asset('vendor/larapex-livewire/larapexLivewireEventListeners.js') }}"></script>
-                HTML;
-        else
-            $tags = <<<HTML
-                        <script src="{{ asset('vendor/larapex-livewire/larapexScripts.js') }}"></script>
-                    HTML;
-        return $tags;
-    }
+    // protected function getScripts()
+    // {
+    //     return $this->isLocalScriptExists() ? $this->getLocalScriptTags() : $this->getScriptsContent();
+    // }
+    // protected function getLocalScriptTags()
+    // {
+    //     if (config('larapex-livewire.useBrowserEventListeners', false))
+    //         $tags = <<<HTML
+    //                 <script src="{{ asset('vendor/larapex-livewire/larapexScripts.js') }}"></script>
+    //                 <script src="{{ asset('vendor/larapex-livewire/larapexLivewireEventListeners.js') }}"></script>
+    //             HTML;
+    //     else
+    //         $tags = <<<HTML
+    //                     <script src="{{ asset('vendor/larapex-livewire/larapexScripts.js') }}"></script>
+    //                 HTML;
+    //     return $tags;
+    // }
 
-    private function getScriptsContent()
-    {
-        $content = $this->getEssentialScriptsContent();
-        if (config('larapex-livewire.useBrowserEventListeners', false))
-            $content .= $this->getLivewireListenersScriptsContent();
-        return $content;
-    }
-    private function getEssentialScriptsContent()
-    {
-        return '<script>' . file_get_contents(__DIR__ . '/../resources/js/larapexScripts.js') . '</script>';
-    }
-    private function getLivewireListenersScriptsContent()
-    {
-        return '<script>' . file_get_contents(__DIR__ . '/../resources/js/larapexLivewireEventListeners.js') . '</script>';
-    }
+    // private function getScriptsContent()
+    // {
+    //     $content = $this->getEssentialScriptsContent();
+    //     if (config('larapex-livewire.useBrowserEventListeners', false))
+    //         $content .= $this->getLivewireListenersScriptsContent();
+    //     return $content;
+    // }
+    // private function getEssentialScriptsContent()
+    // {
+    //     return '<script>' . file_get_contents(__DIR__ . '/../resources/js/larapexScripts.js') . '</script>';
+    // }
+    // private function getLivewireListenersScriptsContent()
+    // {
+    //     return '<script>' . file_get_contents(__DIR__ . '/../resources/js/larapexLivewireEventListeners.js') . '</script>';
+    // }
 
-    protected function isLocalScriptExists()
-    {
-        return $this->isLocalEssentialScriptExists() && $this->isLocalLivewireListenersScriptExists();
-    }
-    private function isLocalEssentialScriptExists()
-    {
-        return file_exists(public_path('vendor\larapex-livewire\larapexScripts.js'));
-    }
-    private function isLocalLivewireListenersScriptExists()
-    {
-        return file_exists(public_path('vendor\larapex-livewire\larapexLivewireEventListeners.js'));
-    }
+    // protected function isLocalScriptExists()
+    // {
+    //     return $this->isLocalEssentialScriptExists() && $this->isLocalLivewireListenersScriptExists();
+    // }
+    // private function isLocalEssentialScriptExists()
+    // {
+    //     return file_exists(public_path('vendor\larapex-livewire\larapexScripts.js'));
+    // }
+    // private function isLocalLivewireListenersScriptExists()
+    // {
+    //     return file_exists(public_path('vendor\larapex-livewire\larapexLivewireEventListeners.js'));
+    // }
 }
