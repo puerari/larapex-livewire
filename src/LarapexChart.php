@@ -1240,6 +1240,18 @@ class LarapexChart implements ChartEssentials
     }
 
     /**
+     * Set the value of annotations
+     *
+     * @return  self
+     */
+    public function setAnnotations($annotations)
+    {
+        $this->annotations = $annotations;
+
+        return $this;
+    }
+
+    /**
      * |-------------------------------------------------------------------------------
      * | Sub items Setters
      * |-------------------------------------------------------------------------------

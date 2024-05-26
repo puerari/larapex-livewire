@@ -42,15 +42,16 @@ If you want to use chart only in sub pages or livewire component and need to pus
     @yield('scripts')
 
     @stack('lw_scripts')
-</body>
-@larapexScripts
+</body> 
 ```
 ```
 // posts.stats.blade.php [normal or livewire component blade]
 <div>
     <!-- Your Sub Page HTML content -->
 
-    @larapexScripts
+    @pushOnce('lw_scripts')
+        @larapexScripts
+    @endPushOnce
 </div>
 ```
 ```
@@ -77,16 +78,16 @@ then its generate a chart class.
 
 >Chart class is a normal livewire class and you can use livewire features inside the class. For example event_listeners, parse value through mount() method etc.
 
-Add data generating code in `getData()` function and use it to fill data in `build()` method.
+Add data generating code in `dataSource()` function and use it to fill data in `build()` method.
 ```
-private function getData(){
+private function dataSource(){
     // Data generating logic
 }
 
 public function build()
 {
     $this->chart = (new WireableAreaChart($this->chart_id))
-        ->addArea('sample-1', $this->getData());
+        ->addArea('sample-1', $this->dataSource());
 }
 ```
 
@@ -96,6 +97,8 @@ add chart like any other livewire component into the blade file
 ```
 <div>
     @livewire('chart-class-name-in-slug-format')
+    <!-- OR -->
+    <livewire:chart-class-name-in-slug-format />
 </div>
 ```
 >Use chart class namespace in dot notation and all in slug format for chart component name in `@livewire()` blade directive. <br>example:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; app/Http/Livewire/TestChart.php Class can use as 'test-chart'.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;app/Http/Livewire/Charts/TestChart.php Class can use as 'charts.test-chart'.
@@ -124,6 +127,7 @@ Can use any option except javascript callback functions as a array using `set` f
 - setPlotOptions()
 - setXAxis()
 - setYAxis()
+- setAnnotations()
 
 also ApexChart has few helper functions
 
@@ -203,7 +207,7 @@ public function jsCallback($key, $jsFunc)
 <b>Usage : <b>
 ```
 $this->chart = (new WireableAreaChart($this->chart_id)) 
-            ->addArea('sample-1', $this->getData())
+            ->addArea('sample-1', $this->dataSource())
 
             /**
              * using String
