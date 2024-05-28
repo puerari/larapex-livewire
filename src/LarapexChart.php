@@ -23,8 +23,11 @@ class LarapexChart implements ChartEssentials
 
     /* chart */
     public $id;
+
     // public $id_sub; //  for brush type
     // public $type_sub; //  for brush type
+
+    public $annotations = [];
     public $chart = [
         'id'                   => 'SampleChart',
         'background'           => '#fff0',
@@ -79,12 +82,13 @@ class LarapexChart implements ChartEssentials
     /** colors
      * @var array $colors
      */
+
     public $colors = [];
     /** data labels */
     public $dataLabels = [
         // 'enabled' => false,
         // 'onSeries' => [],
-        // // 'formatter' => null, // (callback func) no need yet
+        // 'formatter' => null, // (callback func) no need yet
         // 'textAnchor' => 'middle',
         // 'distributed' => false,
         // 'offsetX' => 0,
@@ -109,11 +113,11 @@ class LarapexChart implements ChartEssentials
         // ],
         // 'dropShadow' => [
         //     'enabled' => false,
-        //     // top: 1,
-        //     // left: 1,
-        //     // blur: 1,
-        //     // color: '#000',
-        //     // opacity: 0.45
+        //     'top' => 1,
+        //     'left' => 1,
+        //     'blur' => 1,
+        //     'color' => '#000',
+        //     'opacity' => 0.45
         // ],
     ];
     /** fill */
@@ -524,6 +528,7 @@ class LarapexChart implements ChartEssentials
 
     public function __construct($id = null, array $options = [])
     {
+
         $this->id($id);
 
         $this->colors = config('larapex-livewire.chart_colors');
@@ -643,6 +648,78 @@ class LarapexChart implements ChartEssentials
     {
         return json_encode($this->getOptionsAsArray(), JSON_PRETTY_PRINT);
     }
+    public function getOptionsAsJsonStringForAlpine()
+    {
+        return $this->prepareForAlpine(json_encode($this->getOptionsAsArray(), JSON_PRETTY_PRINT));
+    }
+    public function prepareForAlpine($jsonString)
+    {
+        return Str::replace('"', "'", $jsonString);
+    }
+
+    public $funcs = [
+        // funcCode => func
+    ];
+    public $funcsMapper = [
+        // key => funcCode
+    ];
+    const JS_FUNC_CODE_LENGTH = 4;
+
+    /**
+     * Add Js Callback Function to option.
+     * Can also use `heredoc` instead of regular string when defined js function
+     * @param string $key key hierarchy in dot notation
+     * @param string $jsFunc js function as string
+     *
+     * @return static
+     */
+    public function jsCallback($key, $jsFunc)
+    {
+        // generate code
+        $code = $this->generateJsFuncCode();
+
+        // map key to code
+        Arr::set($this->funcsMapper, $key, $code);
+
+        // store js function
+        $this->funcs[$code] = $jsFunc;
+
+        return $this;
+    }
+
+    public function generateJsFuncCode($length = self::JS_FUNC_CODE_LENGTH)
+    {
+        $sampleChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        return substr(
+            str_shuffle(
+                str_repeat(
+                    $sampleChars,
+                    ceil($length / strlen($sampleChars))
+                ),
+            ),
+            1,
+            $length,
+        );
+    }
+
+
+    public function getJsCallBackOptionsJsonString()
+    {
+        $this->funcsMapper = Arr::dot($this->funcsMapper);
+        // convert to json string
+        $foptions = json_encode($this->funcsMapper, JSON_PRETTY_PRINT);
+
+        // replace code with defined js functions
+        foreach ($this->funcs as $code => $fun) {
+            $foptions = Str::replace(
+                '"' . $code . '"',
+                trim($fun), // remove lead,trail spaces while using heredoc
+                $foptions
+            );
+        }
+
+        return $this->prepareForAlpine($foptions);
+    }
     public function getOptionsAsArray()
     {
         $options = [
@@ -667,7 +744,11 @@ class LarapexChart implements ChartEssentials
             'xaxis'              => $this->xAxis,
             'yaxis'              => $this->yAxis,
         ];
-        $options = collect($options)->filter(fn($option) => !empty($option))->all();
+
+        $options = collect($options)
+            ->filter(fn($option) => !empty ($option))
+            ->all();
+
         return $options;
     }
 
@@ -695,17 +776,27 @@ class LarapexChart implements ChartEssentials
         $this->yAxis = json_encode($this->yAxis);
     }
 
+    /**
+     * @param string $var keyVariable of Larapex
+     * @param mixed $opt key of keyVariable array
+     * @param mixed $val value for key of keyVariable array
+     */
     public function set(string $var, $opt = null, $val = null)
     {
-        if (property_exists($this, $var)) {
-            if (func_num_args() == 2) {
-                $this->$var = $opt;
-            } else {
-                if (!is_array($this->$var))
-                    $this->$var = [];
-                Arr::set($this->$var, $opt, $val);
-            }
+        if (!property_exists($this, $var)) {
+            throw new \Exception("Cannot find key : {$var}");
         }
+
+        if (func_num_args() == 2) {
+            // $this->$var = $opt;
+            $this->$var = $opt;
+        } else {
+            if (!is_array($this->$var)) {
+                $this->$var = [];
+            }
+            Arr::set($this->$var, $opt, $val);
+        }
+
         return $this;
     }
 
@@ -1144,6 +1235,18 @@ class LarapexChart implements ChartEssentials
     public function setYAxis($yAxis)
     {
         $this->yAxis = $yAxis;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of annotations
+     *
+     * @return  self
+     */
+    public function setAnnotations($annotations)
+    {
+        $this->annotations = $annotations;
 
         return $this;
     }
@@ -1779,6 +1882,186 @@ class LarapexChart implements ChartEssentials
         ];
         $info = array_merge($info, $others);
         $this->set('chart', 'zoom', $info);
+        return $this;
+    }
+    /**
+     * |-------------------------------------------------------------------------------
+     * | Chart Annotations Setters
+     * |-------------------------------------------------------------------------------
+     */
+    /**
+     *
+     */
+    public function annotations(array $options = [])
+    {
+        $info = [
+            // 'yaxis'  => [
+            //     [
+            //         'y'               => 0,
+            //         'y2'              => null,
+            //         'strokeDashArray' => 1,
+            //         'borderColor'     => '#c2c2c2',
+            //         'fillColor'       => '#c2c2c2',
+            //         'opacity'         => 0.3,
+            //         'offsetX'         => 0,
+            //         'offsetY'         => -3,
+            //         'width'           => '100%',
+            //         'yAxisIndex'      => 0,
+            //         'label'           => [
+            //             'borderColor'  => '#c2c2c2',
+            //             'borderWidth'  => 1,
+            //             'borderRadius' => 2,
+            //             'text'         => null,
+            //             'textAnchor'   => 'end',
+            //             'position'     => 'right',
+            //             'offsetX'      => 0,
+            //             'offsetY'      => 0,
+            //             'mouseEnter'   => null,
+            //             'mouseLeave'   => null,
+            //             'click'        => null,
+            //             'style'        => [
+            //                 'background' => '#fff',
+            //                 'color'      => '#777',
+            //                 'fontSize'   => '12px',
+            //                 'fontWeight' => 400,
+            //                 'fontFamily' => null,
+            //                 'cssClass'   => 'apexcharts-yaxis-annotation-label',
+            //                 'padding'    => [
+            //                     'left'   => 5,
+            //                     'right'  => 5,
+            //                     'top'    => 0,
+            //                     'bottom' => 2,
+            //                 ]
+            //             ],
+            //         ],
+            //     ]
+            // ],
+            // 'xaxis'  => [
+            //     [
+            //         'x'               => 0,
+            //         'x2'              => null,
+            //         'strokeDashArray' => 1,
+            //         'borderColor'     => '#c2c2c2',
+            //         'fillColor'       => '#c2c2c2',
+            //         'opacity'         => 0.3,
+            //         'offsetX'         => 0,
+            //         'offsetY'         => 0,
+            //         'label'           => [
+            //             'borderColor'  => '#c2c2c2',
+            //             'borderWidth'  => 1,
+            //             'borderRadius' => 2,
+            //             'text'         => null,
+            //             'textAnchor'   => 'middle',
+            //             'position'     => 'top',
+            //             'orientation'  => 'vertical',
+            //             'offsetX'      => 0,
+            //             'offsetY'      => 0,
+            //             'mouseEnter'   => null,
+            //             'mouseLeave'   => null,
+            //             'click'        => null,
+            //             'style'        => [
+            //                 'background' => '#fff',
+            //                 'color'      => '#777',
+            //                 'fontSize'   => '12px',
+            //                 'fontWeight' => 400,
+            //                 'fontFamily' => null,
+            //                 'cssClass'   => 'apexcharts-xaxis-annotation-label',
+            //             ],
+            //         ],
+            //     ]
+            // ],
+            // 'points' => [
+            //     [
+            //         'x'           => 0,
+            //         'y'           => null,
+            //         'yAxisIndex'  => 0,
+            //         'seriesIndex' => 0,
+            //         'mouseEnter'  => null,
+            //         'mouseLeave'  => null,
+            //         'click'       => null,
+            //         'marker'      => [
+            //             'size'        => 0,
+            //             'fillColor'   => "#fff",
+            //             'strokeColor' => "#333",
+            //             'strokeWidth' => 3,
+            //             'shape'       => "circle",
+            //             'radius'      => 2,
+            //             'OffsetX'     => 0,
+            //             'OffsetY'     => 0,
+            //             'cssClass'    => '',
+            //         ],
+            //         'label'       => [
+            //             'borderColor'  => '#c2c2c2',
+            //             'borderWidth'  => 1,
+            //             'borderRadius' => 2,
+            //             'text'         => null,
+            //             'textAnchor'   => 'middle',
+            //             'offsetX'      => 0,
+            //             'offsetY'      => -15,
+            //             'mouseEnter'   => null,
+            //             'mouseLeave'   => null,
+            //             'click'        => null,
+            //             'style'        => [
+            //                 'background' => '#fff',
+            //                 'color'      => '#777',
+            //                 'fontSize'   => '12px',
+            //                 'fontWeight' => 400,
+            //                 'fontFamily' => null,
+            //                 'cssClass'   => 'apexcharts-point-annotation-label',
+            //                 'padding'    => [
+            //                     'left'   => 5,
+            //                     'right'  => 5,
+            //                     'top'    => 0,
+            //                     'bottom' => 2,
+            //                 ]
+            //             ],
+            //         ],
+            //         'image'       => [
+            //             'path'    => null,
+            //             'width'   => 20,
+            //             'height'  => 20,
+            //             'offsetX' => 0,
+            //             'offsetY' => 0,
+            //         ]
+            //     ]
+            // ],
+
+            // 'texts'  => [
+            //     [
+            //         'x'               => 0,
+            //         'y'               => 0,
+            //         'text'            => '',
+            //         'textAnchor'      => 'start',
+            //         'foreColor'       => null,
+            //         'fontSize'        => '13px',
+            //         'fontFamily'      => null,
+            //         'fontWeight'      => 400,
+            //         'appendTo'        => '.apexcharts-annotations',
+            //         'backgroundColor' => 'transparent',
+            //         'borderColor'     => '#c2c2c2',
+            //         'borderRadius'    => 0,
+            //         'borderWidth'     => 0,
+            //         'paddingLeft'     => 4,
+            //         'paddingRight'    => 4,
+            //         'paddingTop'      => 2,
+            //         'paddingBottom'   => 2,
+            //     ]
+            // ],
+
+
+            // 'images' => [
+            //     [
+            //         'path'     => '',
+            //         'x'        => 0,
+            //         'y'        => 0,
+            //         'width'    => 20,
+            //         'height'   => 20,
+            //         'appendTo' => '.apexcharts-annotations'
+            //     ]
+            // ],
+        ];
+        $info = array_merge($info, $options);
+        $this->set('annotations', $info);
         return $this;
     }
 }

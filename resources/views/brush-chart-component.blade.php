@@ -1,4 +1,4 @@
-<div x-data="{
+<div style="margin-top: 20px;" x-data="{
     id: @entangle('brush_chart_id'),
     code: @entangle('brush_chart_code'),
 
@@ -23,19 +23,34 @@
     zoom: @entangle('zoom'),
 
     initChart() {
-        console.log('init chart');
         if (this.subchart == null) {
+            let sub_foptions = {!! $sub_foptions !!};
+            this.deepMergeObjects(this.options_sub, sub_foptions);
             this.subchart = new ApexCharts($refs.chartElemSub, this.options_sub);
             this.subchart.render();
         }
         if (this.mainchart == null) {
+            let main_foptions = {!! $main_foptions !!};
+            this.deepMergeObjects(this.options_main, main_foptions);
             this.mainchart = new ApexCharts($refs.chartElemMain, this.options_main);
             this.mainchart.render();
         }
-
+    },
+    deepMergeObjects(options, mergeObject) {
+        let setCallback = function(path, callback) {
+            let schema = options; // a moving reference to internal objects within obj
+            let pList = path.split('.'); // seperate do natation
+            let len = pList.length;
+            for (let i = 0; i < len - 1; i++) {
+                let elem = pList[i];
+                if (!schema[elem]) schema[elem] = {} // key not exists => assign new obj
+                schema = schema[elem];
+            }
+            schema[pList[len - 1]] = callback;
+        }
+        for (let key in mergeObject) setCallback(key, mergeObject[key]);
     },
     updateOptions() {
-        console.log('update chart');
         if (this.mainchart !== null && Object.keys(this.options_main).length > 0) {
             this.mainchart.updateOptions(
                 this.options_main,
@@ -54,12 +69,10 @@
         }
     },
     updateSeries() {
-        console.log('update series');
         this.updateMainSeries();
         this.updateSubSeries();
     },
     updateMainSeries() {
-        console.log('main series : ', this.options_main.series);
         if (this.mainchart !== null && Object.keys(this.options_main).length > 0) {
             this.mainchart.updateSeries(
                 this.options_main.series,
@@ -68,7 +81,6 @@
         }
     },
     updateSubSeries() {
-        console.log('sub series : ', this.options_sub.series);
         if (this.subchart !== null && Object.keys(this.options_sub).length > 0) {
             this.subchart.updateSeries(
                 this.options_sub.series,
@@ -77,7 +89,6 @@
         }
     },
     resetChart() {
-        console.log('reset chart');
         this.resetMainChart();
         this.resetSubChart();
     },
@@ -96,7 +107,6 @@
         this.isResetSub = true;
     },
     destroyChart() {
-        console.log('destroy chart');
         if (this.mainchart !== null) {
             this.mainchart.destroy();
             this.isDestroyMain = true;
@@ -106,8 +116,8 @@
             this.isDestroySub = true;
         }
     }
-}" x-id="['apex_chart_brush','apex_chart_brush_main','apex_chart_brush_sub']"
-    x-init="initChart();
+}"
+    x-id="['apex_chart_brush','apex_chart_brush_main','apex_chart_brush_sub']" x-init="initChart();
     $watch('options_main', (newOptions) => {
         if (mainchart && (isResetMain !== true) && (isDestroyMain !== true) && JSON.stringify(mainchart.opts) !== JSON.stringify(newOptions)) {
             updateMainSeries();
@@ -119,8 +129,8 @@
             updateSubSeries();
         }
         isResetSub = true;
-    });" x-on:update:chart:options="updateOptions" x-on:reset:chart="resetChart"
-    x-on:delete:chart="destroyChart" wire:ignore>
+    });"
+    x-on:update:chart:options="updateOptions" x-on:reset:chart="resetChart" x-on:delete:chart="destroyChart" wire:ignore>
     <div :class="'apex-brush-wrapper-' + id">
         <div :id="$id('apex_chart_brush_sub')" x-ref="chartElemSub" style="position: relative; margin-top: -38px;"></div>
         <div :id="$id('apex_chart_brush_main')" x-ref="chartElemMain"></div>

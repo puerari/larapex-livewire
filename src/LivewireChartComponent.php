@@ -65,11 +65,14 @@ abstract class LivewireChartComponent extends Component
     public function render()
     {
         $this->build();
+
         $this->options = $this->chart->getOptionsAsArray();
+        $foptions = $this->chart->getJsCallBackOptionsJsonString();
 
         return view('larapex-livewire::chart-component', [
             // 'chart'            => $this->chart,
-            // 'options'          => $this->options,
+            // 'options'  => $options,
+            'foptions' => $foptions,
             // 'redraw'           => $this->redraw ?? false,
             // 'animate'          => $this->animate ?? false,
             // 'updateSyncCharts' => $this->updateSyncCharts ?? false,

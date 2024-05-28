@@ -1,6 +1,7 @@
 # Larapex Livewire
 Laravel wrapper for [ApexCharts javascript plugin](https://apexcharts.com/) advanced features with livewire
-### Support Livewire 3
+>### [Support Livewire 3](#livewire_3_section)
+>### [Support JS Callback Functions](#callback_section)
 
 **Installation**
 ```
@@ -41,15 +42,16 @@ If you want to use chart only in sub pages or livewire component and need to pus
     @yield('scripts')
 
     @stack('lw_scripts')
-</body>
-@larapexScripts
+</body> 
 ```
 ```
 // posts.stats.blade.php [normal or livewire component blade]
 <div>
     <!-- Your Sub Page HTML content -->
 
-    @larapexScripts
+    @pushOnce('lw_scripts')
+        @larapexScripts
+    @endPushOnce
 </div>
 ```
 ```
@@ -76,16 +78,16 @@ then its generate a chart class.
 
 >Chart class is a normal livewire class and you can use livewire features inside the class. For example event_listeners, parse value through mount() method etc.
 
-Add data generating code in `getData()` function and use it to fill data in `build()` method.
+Add data generating code in `dataSource()` function and use it to fill data in `build()` method.
 ```
-private function getData(){
+private function dataSource(){
     // Data generating logic
 }
 
 public function build()
 {
     $this->chart = (new WireableAreaChart($this->chart_id))
-        ->addArea('sample-1', $this->getData());
+        ->addArea('sample-1', $this->dataSource());
 }
 ```
 
@@ -95,6 +97,8 @@ add chart like any other livewire component into the blade file
 ```
 <div>
     @livewire('chart-class-name-in-slug-format')
+    <!-- OR -->
+    <livewire:chart-class-name-in-slug-format />
 </div>
 ```
 >Use chart class namespace in dot notation and all in slug format for chart component name in `@livewire()` blade directive. <br>example:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; app/Http/Livewire/TestChart.php Class can use as 'test-chart'.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;app/Http/Livewire/Charts/TestChart.php Class can use as 'charts.test-chart'.
@@ -123,6 +127,7 @@ Can use any option except javascript callback functions as a array using `set` f
 - setPlotOptions()
 - setXAxis()
 - setYAxis()
+- setAnnotations()
 
 also ApexChart has few helper functions
 
@@ -154,6 +159,7 @@ also ApexChart has few helper functions
 - xAxisTickPlacement(string $placement)
 - yAxis(bool $show, array $others)
 - zoom(bool $enable, string $type, array $others)
+- annotations(array $options)
 
 **Overwrite configs**
 - background(string $color)
@@ -161,6 +167,69 @@ also ApexChart has few helper functions
 - fontFamily(string $fontFamily)
 - height(string $height)
 - width(string $width)
+
+
+<a id="livewire_3_section"></a>
+
+## Livewire 3 Support
+
+==================== **New Chart Events** ====================
+- `refresh:chart` *- update only data series* 
+- `update:chart:options` *- update all options <b>`Experimental`</b>*
+- `reset:chart` *- reset zoom etc. <b>`Experimental`</b>*
+- `delete:chart` *- remove chart element from DOM*
+
+
+>   ### This events <u>Simple Chart</u> & <u>Brush Chart</u> both supported. 
+
+
+<b>Usage :</b>
+```
+$this->dispatch('refresh:chart', ['min' => rand(1, 5), 'max' => rand(1, 30)])->to(MyChart::class);
+$this->dispatch('update:chart:options')->to(MyChart::class);
+$this->dispatch('reset:chart')->to(MyChart::class);
+$this->dispatch('delete:chart')->to(MyChart::class);
+```
+
+<a id="callback_section"></a>
+
+## Js Callback Function Support
+
+If you need to add custom callback functions for something like formatters, you can use ``` jsCallback() ``` function.
+In ``` jsCallback() ``` function first Parameter is array key path in dot notation. And JS Callback function string needs to pass as second parameter.
+
+```
+public function jsCallback($key, $jsFunc) 
+```
+
+>You can also use `heredoc syntax` and `nowdoc syntax` instead of regular string when defined js function
+
+<b>Usage : <b>
+```
+$this->chart = (new WireableAreaChart($this->chart_id)) 
+            ->addArea('sample-1', $this->dataSource())
+
+            /**
+             * using String
+             */
+            ->jsCallback('dataLabels.formatter', "function (val, opts) {
+                        return val + 'X'
+            }")
+
+             /**
+             * using heredoc
+             */
+            ->jsCallback('yaxis.labels.formatter', <<<HTML
+                        function (value){
+                            return value+'$'
+                        }
+            HTML) 
+            ->jsCallback('tooltip.y.formatter', <<<HTML
+                    function(value,{series,seriesIndex,dataPointIndex,w}){
+                        return value;
+                    }
+            HTML);
+```
 
 ## Inspiration
 Highly inspired by [Larapex Charts Package](https://github.com/ArielMejiaDev/larapex-charts).

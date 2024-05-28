@@ -5,6 +5,7 @@ namespace LarawireGarage\LarapexLivewire;
 use Livewire\Component;
 use Livewire\Attributes\On;
 use LarawireGarage\LarapexLivewire\Traits\HasBrushChart;
+use LarawireGarage\LarapexLivewire\Wireable\LarapexWirable;
 use LarawireGarage\LarapexLivewire\Wireable\WireableBrushChart;
 
 abstract class LivewireBrushChartComponent extends Component
@@ -56,7 +57,7 @@ abstract class LivewireBrushChartComponent extends Component
     {
         $this->hydrateParameters($params);
     }
-    #[On('update:chart:series')]
+    #[On('update:chart:options')]
     public function updateChartSeries(...$params)
     {
         $this->hydrateParameters($params);
@@ -105,9 +106,9 @@ abstract class LivewireBrushChartComponent extends Component
         return $this;
     }
 
-    abstract protected function buildMainChart();
+    abstract protected function buildMainChart():LarapexWirable;
 
-    abstract protected function buildSubChart();
+    abstract protected function buildSubChart():LarapexWirable;
 
     abstract protected function dataSource();
 
@@ -157,7 +158,12 @@ abstract class LivewireBrushChartComponent extends Component
 
         $this->extractOptions();
 
+        $main_foptions = $this->brushChart->getMainChart()->getJsCallBackOptionsJsonString();
+        $sub_foptions = $this->brushChart->getSubChart()->getJsCallBackOptionsJsonString();
+
         return view('larapex-livewire::brush-chart-component', [
+            'main_foptions' => $main_foptions,
+            'sub_foptions'  => $sub_foptions,
             // 'brushChart'       => $this->brushChart,
             // 'redraw'           => $this->redraw ?? false,
             // 'animate'          => $this->animate ?? false,

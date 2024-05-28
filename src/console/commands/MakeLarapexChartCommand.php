@@ -25,12 +25,12 @@ class MakeLarapexChartCommand extends GeneratorCommand
     protected $description = 'Make a Larapex Livewire Chart';
 
     protected $chartTypes = [
-        'Area Chart'            => 'WireableAreaChart',
-        'Bar Chart'             => 'WireableBarChart',
-        'Brush Chart'           => 'WireableBrushChart',
-        'Donut Chart'           => 'WireableDonutChart',
-        'Line Chart'            => 'WireableLineChart',
-        'Pie Chart'             => 'WireablePieChart',
+        'Area Chart'  => 'WireableAreaChart',
+        'Bar Chart'   => 'WireableBarChart',
+        'Brush Chart' => 'WireableBrushChart',
+        'Donut Chart' => 'WireableDonutChart',
+        'Line Chart'  => 'WireableLineChart',
+        'Pie Chart'   => 'WireablePieChart',
         // 'Radial Bar Chart'      => 'WireableRadialBarChart', // not available yet
         // 'Polar Area Chart'      => 'WireablePolarAreaChart', // not available yet
         // 'Horizontal Bar Chart'  => 'WireableHorizontalBarChart', // not available yet
@@ -89,7 +89,7 @@ class MakeLarapexChartCommand extends GeneratorCommand
             ->replace('\\', '/')
             ->replace('.', '/')
             ->explode('/')
-            ->map(fn ($dir) => Str::studly($dir))
+            ->map(fn($dir) => Str::studly($dir))
             ->implode('/');
         // return Str::of($this->argument('name'))->camel()->studly() . '';
     }
@@ -98,7 +98,7 @@ class MakeLarapexChartCommand extends GeneratorCommand
     {
         return Str::of($this->qualifyClass($this->getNameInput()))
             ->explode('\\')
-            ->map(fn ($dirname) => Str::ucfirst($dirname))
+            ->map(fn($dirname) => Str::ucfirst($dirname))
             ->slice(0, -1)
             ->implode('\\');
     }
@@ -112,7 +112,7 @@ class MakeLarapexChartCommand extends GeneratorCommand
     {
         $name = Str::of(Str::of($this->qualifyClass($this->getNameInput()))
             ->explode('\\')
-            ->map(fn ($dirname) => Str::ucfirst($dirname))
+            ->map(fn($dirname) => Str::ucfirst($dirname))
             ->implode('\\'))
             ->replaceFirst(app()->getNamespace(), '')
             ->finish('.php');
@@ -135,9 +135,14 @@ class MakeLarapexChartCommand extends GeneratorCommand
      */
     protected function getStub(): string
     {
-        return $this->selectedChart == 'WireableBrushChart'
-            ? __DIR__ . '/stubs/brush-chart-component.stub'
-            : __DIR__ . '/stubs/chart-component.stub';
+        return match ($this->selectedChart) {
+            'WireableBrushChart' => __DIR__ . '/stubs/brush-chart-component.stub',
+            'WireableAreaChart' => __DIR__ . '/stubs/area-chart-component.stub',
+            'WireableBarChart' => __DIR__ . '/stubs/bar-chart-component.stub',
+            'WireableDonutChart' => __DIR__ . '/stubs/donut-chart-component.stub',
+            'WireableLineChart' => __DIR__ . '/stubs/line-chart-component.stub',
+            'WireablePieChart' => __DIR__ . '/stubs/pie-chart-component.stub',
+        };
     }
 
     /**
