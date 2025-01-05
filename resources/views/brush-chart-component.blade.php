@@ -22,16 +22,25 @@
     update: @entangle('update'),
     zoom: @entangle('zoom'),
 
+    themes: @js(config('larapex-livewire.available_themes')),
+
     initChart() {
+        window.addEventListener('themeChanged', (e) => {
+            this.changeSubTheme(e.detail.theme);
+            this.changeMainTheme(e.detail.theme);
+            this.updateOptions();
+        });
         if (this.subchart == null) {
             let sub_foptions = {!! $sub_foptions !!};
             this.deepMergeObjects(this.options_sub, sub_foptions);
+            this.changeSubTheme(this.options_sub.theme.mode);
             this.subchart = new ApexCharts($refs.chartElemSub, this.options_sub);
             this.subchart.render();
         }
         if (this.mainchart == null) {
             let main_foptions = {!! $main_foptions !!};
             this.deepMergeObjects(this.options_main, main_foptions);
+            this.changeMainTheme(this.options_main.theme.mode);
             this.mainchart = new ApexCharts($refs.chartElemMain, this.options_main);
             this.mainchart.render();
         }
@@ -49,6 +58,36 @@
             schema[pList[len - 1]] = callback;
         }
         for (let key in mergeObject) setCallback(key, mergeObject[key]);
+    },
+    osTheme() {
+        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    },
+    handleTheme() {
+        let subTheme = this.options_sub.theme.mode;
+        this.changeSubTheme(subTheme);
+
+        let mainTheme = this.options_main.theme.mode;
+        this.changeMainTheme(mainTheme);
+    },
+    changeSubTheme(theme) {
+        this.applySubTheme(!['light', 'dark'].includes(theme) ? this.osTheme() : theme);
+    },
+    changeMainTheme(theme) {
+        this.applyMainTheme(!['light', 'dark'].includes(theme) ? this.osTheme() : theme);
+    },
+    applyMainTheme(theme) {
+        this.options_main.theme.mode = theme;
+        this.options_main.chart.foreColor = this.themes[theme]['font_color'];
+        this.options_main.chart.background = this.themes[theme]['background_color'];
+    },
+    applySubTheme(theme) {
+        this.options_sub.theme.mode = theme;
+        this.options_sub.chart.foreColor = this.themes[theme]['font_color'];
+        this.options_sub.chart.background = this.themes[theme]['background_color'];
+    },
+    updateChartOptions() {
+        this.handleTheme();
+        this.updateOptions();
     },
     updateOptions() {
         if (this.mainchart !== null && Object.keys(this.options_main).length > 0) {
@@ -116,8 +155,8 @@
             this.isDestroySub = true;
         }
     }
-}"
-    x-id="['apex_chart_brush','apex_chart_brush_main','apex_chart_brush_sub']" x-init="initChart();
+}" x-id="['apex_chart_brush','apex_chart_brush_main','apex_chart_brush_sub']"
+    x-init="initChart();
     $watch('options_main', (newOptions) => {
         if (mainchart && (isResetMain !== true) && (isDestroyMain !== true) && JSON.stringify(mainchart.opts) !== JSON.stringify(newOptions)) {
             updateMainSeries();
@@ -129,8 +168,8 @@
             updateSubSeries();
         }
         isResetSub = true;
-    });"
-    x-on:update:chart:options="updateOptions" x-on:reset:chart="resetChart" x-on:delete:chart="destroyChart" wire:ignore>
+    });" x-on:update:chart:options="updateChartOptions" x-on:reset:chart="resetChart" x-on:delete:chart="destroyChart"
+    wire:ignore>
     <div :class="'apex-brush-wrapper-' + id">
         <div :id="$id('apex_chart_brush_sub')" x-ref="chartElemSub" style="position: relative; margin-top: -38px;"></div>
         <div :id="$id('apex_chart_brush_main')" x-ref="chartElemMain"></div>

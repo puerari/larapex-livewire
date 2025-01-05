@@ -1,7 +1,11 @@
 # Larapex Livewire
 Laravel wrapper for [ApexCharts javascript plugin](https://apexcharts.com/) advanced features with livewire
->### [Support Livewire 3](#livewire_3_section)
->### [Support JS Callback Functions](#callback_section)
+
+> &nbsp;
+>### 👉 [Support Livewire 3](#livewire_3_section)
+>### 👉 [Support JS Callback Functions](#callback_section)
+>### 👉 [Support Light, Dark Themes](#theme_section)
+> &nbsp;
 
 **Installation**
 ```
@@ -230,6 +234,63 @@ $this->chart = (new WireableAreaChart($this->chart_id))
                     }
             HTML);
 ```
+
+<a id="theme_section"></a>
+
+## Light, Dark Themes Support
+
+You can change theme of the chart. In the configs you can customize the background and font colors for each light and dark theme. if you set default theme to `"auto"`, chart use OS color scheme [light or dark].
+
+> ⚠ If you migrate from v1.x, you needs to re-publish config file with `--force` option to replace new config file.
+
+```Bash
+php artisan vendor:publish --tag=larapex-livewire-configs --force
+```
+
+You can change the theme in the chart component using chart's `theme()` function.
+
+```php
+// change theme from chart component
+
+$this->chart = (new WireableAreaChart($this->chart_id))
+                    ->addArea('sample-1', $this->dataSource())
+                    ->theme('auto'); // support: light, dark, auto
+```
+You can change and customize the theme in the configs
+
+> <br>
+> ▶ Only supports light, dark, auto themes.<br>
+> ▶ Only supports background_color & font_color attrubutes of the theme. <br>
+>  &nbsp;
+<br>
+
+```php
+// customize theme colors in config
+
+'default_theme'    => 'auto',
+
+'available_themes' => [
+    'light' => [
+        'background_color' => '#fff',
+        'font_color'       => '#000',
+    ],
+    'dark'  => [
+        'background_color' => '#ffffff00',
+        'font_color'       => '#f1f1f1',
+    ],
+],
+```
+
+Also chart listening to `themeChanged` javascript custom event.
+
+```javascript
+    let theme = 'dark';
+    let data = { detail: { theme: theme }, bubble: true, cancellable: true };
+    let event = new CustomEvent('themeChanged', data);
+    window.dispatchEvent(event);
+```
+
+> ⚠ `themeChanged` event listener looking for `event.detail.theme` key for theme string.
 
 ## Inspiration
 Highly inspired by [Larapex Charts Package](https://github.com/ArielMejiaDev/larapex-charts).

@@ -259,8 +259,7 @@ class LarapexChart implements ChartEssentials
     ];
     /** theme */
     public $theme = [
-        'mode' => 'dark',
-        // possible : light, dark
+        'mode' => 'dark', // possible : light, dark
         // 'palette' => 'palette1', // possible : palette1 - palette10
         // 'monochrome' => [
         //     'enabled' => false,
@@ -534,27 +533,15 @@ class LarapexChart implements ChartEssentials
         $this->colors = config('larapex-livewire.chart_colors');
 
         $this->set('chart', 'fontFamily', config('larapex-livewire.font_family'));
-        $this->set('chart', 'foreColor', config('larapex-livewire.font_color'));
-        $this->set('chart', 'background', config('larapex-livewire.background_color'));
 
-        if (!empty($options))
+        $defaultTheme = config('larapex-livewire.default_theme', 'auto');
+
+        $this->theme($defaultTheme);
+
+        if (!empty($options)) {
             $this->fill($options);
+        }
 
-        // $this->set('chart', 'foreColor', 'Nunito');
-        // $this->set('chart', 'background', '#ffffff00');
-        // $this->set('chart', 'fontFamily', '#ffffff00');
-        // $this->id_sub = $this->generateID();
-        // $this->type_sub = 'line';
-        // $this->horizontal = json_encode(['horizontal' => false]);
-        // $this->xAxis = json_encode([]);
-        // $this->grid = json_encode(['show' => false]);
-        // $this->markers = json_encode(['show' => false]);
-        // $this->toolbar = json_encode(['show' => false]);
-        // $this->zoom = json_encode(['enabled' => true]);
-        // $this->dataLabels = json_encode(['enabled' => false]);
-        // $this->fill = json_encode(['type'   => 'solid']);
-        // $this->noData = json_encode(['text' => 'No Data']);
-        // return $this;
     }
 
     public function fill(array $options = [])
@@ -746,7 +733,7 @@ class LarapexChart implements ChartEssentials
         ];
 
         $options = collect($options)
-            ->filter(fn($option) => !empty ($option))
+            ->filter(fn($option) => !empty($option))
             ->all();
 
         return $options;
@@ -1577,11 +1564,12 @@ class LarapexChart implements ChartEssentials
      * |-------------------------------------------------------------------------------
      */
     /**
-     * @uses $mode light,dark
+     * @uses $mode light,dark,auto
      * @uses $others palette[palette1 - palette10]
      */
     public function theme(string $mode = 'dark', array $others = [])
     {
+
         $info = [
             'mode' => $mode,
             // possible : light, dark
@@ -1595,6 +1583,18 @@ class LarapexChart implements ChartEssentials
         ];
         $info = array_merge($info, $others);
         $this->set('theme', $info);
+
+        $this->set(
+            'chart',
+            'foreColor',
+            $mode == 'auto' ? 'light' : config('larapex-livewire.available_themes')[$mode]['font_color']
+        );
+        $this->set(
+            'chart',
+            'background',
+            $mode == 'auto' ? 'light' : config('larapex-livewire.available_themes')[$mode]['background_color']
+        );
+
         return $this;
     }
     /**

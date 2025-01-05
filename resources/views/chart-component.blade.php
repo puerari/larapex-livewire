@@ -10,9 +10,17 @@
     zoom: @entangle('zoom'),
     isReset: false,
     isDestroy: false,
+    themes: @js(config('larapex-livewire.available_themes')),
     initChart() {
         let foptions = {!! $foptions !!};
         this.deepMergeObjects(this.options, foptions);
+        this.handleTheme();
+
+        window.addEventListener('themeChanged', (e) => {
+            this.changeTheme(e.detail.theme);
+            this.updateOptions();
+        });
+
         this.chart = new ApexCharts($refs.chartElem, this.options);
         this.chart.render();
     },
@@ -30,6 +38,28 @@
         }
         for (let key in mergeObject) setCallback(key, mergeObject[key]);
     },
+    osTheme() {
+        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    },
+    handleTheme() {
+        let theme = this.options.theme.mode;
+        this.changeTheme(theme);
+    },
+    changeTheme(theme) {
+        this.applyTheme(!['light', 'dark'].includes(theme) ? this.osTheme() : theme);
+    },
+    applyTheme(theme) {
+        this.options.tooltip.theme = theme;
+        this.options.theme.mode = theme;
+        this.options.chart.foreColor = this.themes[theme]['font_color'];
+        this.options.chart.background = this.themes[theme]['background_color'];
+
+        console.log(this.options);
+    },
+    updateChartOptions() {
+        this.handleTheme();
+        this.updateOptions();
+    },
     updateOptions() {
         if (this.chart !== null && Object.keys(this.options).length > 0) {
             this.chart.updateOptions(
@@ -42,6 +72,7 @@
     },
     updateSeries() {
         if (this.chart !== null && Object.keys(this.options).length > 0) {
+            this.handleTheme();
             this.chart.updateSeries(
                 this.options.series,
                 this.animate
@@ -50,6 +81,7 @@
     },
     resetChart() {
         if (this.chart !== null) {
+            this.handleTheme();
             this.chart.resetSeries(
                 this.update,
                 this.zoom
@@ -68,6 +100,6 @@
     isReset = false;
 });
 initChart();"
-    x-on:update:chart:options="updateOptions" x-on:reset:chart="resetChart" x-on:delete:chart="destroyChart" wire:ignore>
+    x-on:update:chart:options="updateChartOptions" x-on:reset:chart="resetChart" x-on:delete:chart="destroyChart" wire:ignore>
     <div :id="$id('apex_chart')" x-ref="chartElem" class="m-0"></div>
 </div>
