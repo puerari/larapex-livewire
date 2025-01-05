@@ -2,9 +2,10 @@
 
 namespace {{ namespace }};
 
-use LarawireGarage\LarapexLivewire\LivewireBrushChartComponent;
-use LarawireGarage\LarapexLivewire\Wireable\WireableAreaChart;
+use LarawireGarage\LarapexLivewire\Wireable\LarapexWirable;
 use LarawireGarage\LarapexLivewire\Wireable\WireableBarChart;
+use LarawireGarage\LarapexLivewire\Wireable\WireableAreaChart;
+use LarawireGarage\LarapexLivewire\LivewireBrushChartComponent;
 
 class {{ class }} extends LivewireBrushChartComponent
 {
@@ -39,20 +40,50 @@ class {{ class }} extends LivewireBrushChartComponent
             ->setSelectionMax(20);
     }
 
-    protected function buildMainChart()
+    protected function buildMainChart(): LarapexWirable
     {
         // choose any chart
         return (new WireableBarChart($this->sub_chart_id))
             ->showDataLabels(false)
-            ->randomColors(5);
+            ->randomColors(5)
+            // /**
+            //  * using heredoc
+            //  */
+            // ->jsCallback('tooltip.y.formatter', <<<HTML
+            //     function(value,{series,seriesIndex,dataPointIndex,w}){
+            //         return value;
+            //     }
+            // HTML)
+            // /**
+            //  * using String
+            //  */
+            // ->jsCallback('dataLabels.formatter', "function (val, opts) {
+            //     return val + '$'
+            // }")
+            ;
     }
 
-    protected function buildSubChart()
+    protected function buildSubChart(): LarapexWirable
     {
         // choose any chart
         $chart = (new WireableAreaChart($this->main_chart_id))
             ->showDataLabels(false)
-            ->randomColors(5);
+            ->randomColors(5)
+            // /**
+            //  * using heredoc
+            //  */
+            // ->jsCallback('tooltip.y.formatter', <<<HTML
+            //     function(value,{series,seriesIndex,dataPointIndex,w}){
+            //         return value;
+            //     }
+            // HTML)
+            // /**
+            //  * using String
+            //  */
+            // ->jsCallback('dataLabels.formatter', "function (val, opts) {
+            //     return val + '$'
+            // }")
+            ;
         return $chart;
     }
 }

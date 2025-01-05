@@ -3,14 +3,16 @@
 namespace LarawireGarage\LarapexLivewire;
 
 use Livewire\Component;
+use Livewire\Attributes\On;
 use LarawireGarage\LarapexLivewire\Traits\HasBrushChart;
+use LarawireGarage\LarapexLivewire\Wireable\LarapexWirable;
 use LarawireGarage\LarapexLivewire\Wireable\WireableBrushChart;
 
 abstract class LivewireBrushChartComponent extends Component
 {
     use HasBrushChart;
 
-    /** @var \LarawireGarage\LarapexLivewire\Wireable\WireableBrushChart $brushChart */
+    /** @var WireableBrushChart $brushChart */
     protected $brushChart;
 
     // /** @var \LarawireGarage\LarapexLivewire\Wireable\LarapexWirable $mainChart */
@@ -50,6 +52,44 @@ abstract class LivewireBrushChartComponent extends Component
     /** @var string|null $selectionMax */
     protected $selectionMax;
 
+    #[On('refresh:chart')]
+    public function updateChart(...$params)
+    {
+        $this->hydrateParameters($params);
+    }
+    #[On('update:chart:options')]
+    public function updateChartSeries(...$params)
+    {
+        $this->hydrateParameters($params);
+    }
+    #[On('reset:chart')]
+    public function resetChart(...$params)
+    {
+        $this->hydrateParameters($params);
+    }
+
+    private function hydrateParameters($parameters = [])
+    {
+        if (empty($parameters)) {
+            return;
+        }
+
+        if (is_array($parameters[0])) {
+            $this->hydrateInstanceProperties($parameters[0]);
+            return;
+        }
+
+        $this->hydrateInstanceProperties($parameters);
+    }
+    private function hydrateInstanceProperties(array $properties = [])
+    {
+        array_walk($properties, function (&$value, $key) {
+            if (property_exists($this, $key)) {
+                $this->{$key} = $value;
+            };
+        });
+    }
+
     public function setSelectionType($type)
     {
         $this->selectionType = $type;
@@ -66,9 +106,9 @@ abstract class LivewireBrushChartComponent extends Component
         return $this;
     }
 
-    abstract protected function buildMainChart();
+    abstract protected function buildMainChart():LarapexWirable;
 
-    abstract protected function buildSubChart();
+    abstract protected function buildSubChart():LarapexWirable;
 
     abstract protected function dataSource();
 
@@ -104,8 +144,8 @@ abstract class LivewireBrushChartComponent extends Component
     }
     private function extractOptions()
     {
-        $this->main_options = $this->brushChart->getMainChart()->getOptionsAsJson();
-        $this->sub_options = $this->brushChart->getSubChart()->getOptionsAsJson();
+        $this->main_options = $this->brushChart->getMainChart()->getOptionsAsArray();
+        $this->sub_options = $this->brushChart->getSubChart()->getOptionsAsArray();
     }
 
     public function render()
@@ -118,11 +158,16 @@ abstract class LivewireBrushChartComponent extends Component
 
         $this->extractOptions();
 
+        $main_foptions = $this->brushChart->getMainChart()->getJsCallBackOptionsJsonString();
+        $sub_foptions = $this->brushChart->getSubChart()->getJsCallBackOptionsJsonString();
+
         return view('larapex-livewire::brush-chart-component', [
-            'brushChart' => $this->brushChart,
-            'redraw' => $this->redraw ?? false,
-            'animate' => $this->animate ?? false,
-            'updateSyncCharts' => $this->updateSyncCharts ?? false,
+            'main_foptions' => $main_foptions,
+            'sub_foptions'  => $sub_foptions,
+            // 'brushChart'       => $this->brushChart,
+            // 'redraw'           => $this->redraw ?? false,
+            // 'animate'          => $this->animate ?? false,
+            // 'updateSyncCharts' => $this->updateSyncCharts ?? false,
         ]);
     }
 }
