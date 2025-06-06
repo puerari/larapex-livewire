@@ -25,13 +25,14 @@ class MakeLarapexChartCommand extends GeneratorCommand
     protected $description = 'Make a Larapex Livewire Chart';
 
     protected $chartTypes = [
-        'Area Chart'                => 'WireableAreaChart',
-        'Bar Chart'                 => 'WireableBarChart',
-        'Brush Chart'               => 'WireableBrushChart',
-        'Donut Chart'               => 'WireableDonutChart',
-        'Line Chart'                => 'WireableLineChart',
-        'Pie Chart'                 => 'WireablePieChart',
-        'Mixed Multi Y-Axis Chart'  => 'WireableMixedMultiAxisChart',
+        'Area Chart'                    => 'WireableAreaChart',
+        'Bar Chart'                     => 'WireableBarChart',
+        'Brush Chart'                   => 'WireableBrushChart',
+        'Donut Chart'                   => 'WireableDonutChart',
+        'Line Chart'                    => 'WireableLineChart',
+        'Pie Chart'                     => 'WireablePieChart',
+        'Mixed Multi Y-Axis Chart'      => 'WireableMixedMultiAxisChart',
+        'Mixed Line Column Area Chart'  => 'WireableMixedLineColumnAreaChart',
         // 'Column Chart'          => 'WireableColumnChart',        // not available yet
         // 'Box Plot Chart'        => 'WireableBoxPlotChart',       // not available yet
         // 'Candlestick Chart'     => 'WireableCandlesticChart',    // not available yet
@@ -151,6 +152,7 @@ class MakeLarapexChartCommand extends GeneratorCommand
             'WireableLineChart' => __DIR__ . '/stubs/line-chart-component.stub',
             'WireablePieChart' => __DIR__ . '/stubs/pie-chart-component.stub',
             'WireableMixedMultiAxisChart' => __DIR__ . '/stubs/mixed-multi-axis-chart-component.stub',
+            'WireableMixedLineColumnAreaChart' => __DIR__ . '/stubs/mixed-line-column-area-chart-component.stub',
         };
     }
 
