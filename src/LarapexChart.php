@@ -1345,7 +1345,9 @@ class LarapexChart implements ChartEssentials
      */
     public function setXAxis(array $xAxis): static
     {
-        $this->xAxis = $xAxis;
+        $xAxis['categories'] = array_key_exists('categories', $xAxis) ? $xAxis['categories'] : $xAxis;
+        $xAxis['type'] = array_key_exists('type', $xAxis) ? $xAxis['type'] : 'category';
+        $this->xAxis = array_merge($this->xAxis, $xAxis);
 
         return $this;
     }
@@ -1358,7 +1360,9 @@ class LarapexChart implements ChartEssentials
      */
     public function setYAxis(array $yAxis): static
     {
-        $this->yAxis = $yAxis;
+        //$yAxis['categories'] = array_key_exists('categories', $yAxis) ? $yAxis['categories'] : $yAxis;
+        //$yAxis['type'] = array_key_exists('type', $yAxis) ? $yAxis['type'] : 'category';
+        $this->yAxis = array_merge($this->yAxis, $yAxis);
 
         return $this;
     }

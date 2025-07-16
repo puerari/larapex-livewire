@@ -14,7 +14,6 @@ class WireableMixedMultiAxisChart extends LarapexWirable
         parent::__construct($id, $options);
         $this->set('chart', 'type', 'line');
         $this->set('chart', 'stacked', false);
-
     }
 
     public function addLine(string $name, array $data)
